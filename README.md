@@ -10,11 +10,11 @@ Netcracker EDU Summer 2021 - Индивидуальный учебный про�
 ---
 ### UML - схема
 
-<img src="media/UML.png">
+<img alt="uml" src="media/UML.png">
 
 ### Схема базы данных
 
-<img src="media/UML.png">
+<img alt="db schema" src="media/DB_schema.png">
 
 ---
 ### API

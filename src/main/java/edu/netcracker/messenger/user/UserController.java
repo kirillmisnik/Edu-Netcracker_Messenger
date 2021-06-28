@@ -3,17 +3,53 @@ package edu.netcracker.messenger.user;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("user")
 public class UserController {
 
+    private final UserRepository repository;
+
+    UserController(UserRepository repository) {
+        this.repository = repository;
+    }
+
     /**
-     * Регистрирует пользователя и выделяет ему id.
-     * @return id пользователя
+     * Регистрирует пользователя.
+     * @return пользователь
      */
-    @PutMapping("/{id}")
-    public @ResponseBody String registerUser(@PathVariable Long id) {
-        return String.format("User %d was created", id);
+    @PutMapping()
+    public @ResponseBody User registerUser(@RequestBody User newUser) {
+        return repository.save(newUser);
+    }
+
+    /**
+     * Возвращает список всех зарегистрированных пользователей.
+     * @return зарегистрированные пользователи
+     */
+    @GetMapping()
+    public @ResponseBody List<User> allUsers() {
+        return repository.findAll();
+    }
+
+    /**
+     * Возвращает информацию о пользователе по id.
+     * @param id id пользователя
+     * @return информацию о пользователе
+     */
+    @GetMapping("/{id}")
+    public @ResponseBody User getUserInfo(@PathVariable Long id) {
+        return repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+    }
+
+    /**
+     * Удаляет пользователя по id.
+     * @param id id пользователя
+     */
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Long id) {
+        repository.deleteById(id);
     }
 
     /**
@@ -24,26 +60,6 @@ public class UserController {
     @PostMapping("/{id}")
     public @ResponseBody String loginUser(@PathVariable Long id) {
         return String.format("Session started with user %d", id);
-    }
-
-    /**
-     * Возвращает информацию о пользователе по id.
-     * @param id id пользователя
-     * @return информацию о пользователе
-     */
-    @GetMapping("/{id}")
-    public @ResponseBody String getUserInfo(@PathVariable Long id) {
-        return String.format("User %d info", id);
-    }
-
-    /**
-     * Удаляет пользователя по id.
-     * @param id id пользователя
-     * @return подтверждение об удалении
-     */
-    @DeleteMapping("/{id}")
-    public @ResponseBody String deleteUser(@PathVariable Long id) {
-        return String.format("User %d was deleted", id);
     }
 
     /**
