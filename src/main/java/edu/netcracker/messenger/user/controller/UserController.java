@@ -1,5 +1,8 @@
-package edu.netcracker.messenger.user;
+package edu.netcracker.messenger.user.controller;
 
+import edu.netcracker.messenger.user.User;
+import edu.netcracker.messenger.user.UserNotFoundException;
+import edu.netcracker.messenger.user.UserRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,18 +20,20 @@ public class UserController {
 
     /**
      * Регистрирует пользователя.
-     * @return пользователь
+     * @return id пользователя
      */
     @PutMapping()
-    public @ResponseBody User registerUser(@RequestBody User newUser) {
-        return repository.save(newUser);
+    public @ResponseBody
+    Long registerUser(@RequestBody User newUser) {
+        repository.save(newUser);
+        return newUser.getId();
     }
 
     /**
      * Возвращает список всех зарегистрированных пользователей.
      * @return зарегистрированные пользователи
      */
-    @GetMapping()
+    @GetMapping("/all")
     public @ResponseBody List<User> allUsers() {
         return repository.findAll();
     }
@@ -46,10 +51,15 @@ public class UserController {
     /**
      * Удаляет пользователя по id.
      * @param id id пользователя
+     * @return id удаленного пользователя в случае успеха
      */
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Long id) {
+    public @ResponseBody Long deleteUser(@PathVariable Long id) {
+        if (!repository.existsById(id)) {
+            throw new UserNotFoundException(id);
+        }
         repository.deleteById(id);
+        return id;
     }
 
     /**

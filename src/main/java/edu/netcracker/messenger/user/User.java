@@ -10,8 +10,6 @@ import java.util.Objects;
 @Table(name = "users")
 public class User {
 
-    public User() {}
-
     @Id
     @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,6 +17,9 @@ public class User {
 
     @Column(name = "username")
     private String username;
+
+    @Column(name = "password")
+    private byte[] password;
 
     @Column(name = "first_name")
     private String firstName;
@@ -66,6 +67,14 @@ public class User {
         this.username = username;
     }
 
+    public byte[] getPassword() {
+        return password;
+    }
+
+    public void setPassword(byte[] password) {
+        this.password = password;
+    }
+
     public String getFirstName() {
         return firstName;
     }
@@ -110,6 +119,14 @@ public class User {
         return accountTypeId;
     }
 
+    public AccountType getAccountType(int id) {
+        return switch (id) {
+            case 1 -> AccountType.ADMIN;
+            case 2 -> AccountType.USER;
+            default -> AccountType.BLOCKED;
+        };
+    }
+
     public void setAccountTypeId(int accountTypeId) {
         this.accountTypeId = accountTypeId;
     }
@@ -143,7 +160,7 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(bio, user.bio) && Objects.equals(phoneNumber, user.phoneNumber) && Objects.equals(email, user.email) && Objects.equals(accountTypeId, user.accountTypeId) && Objects.equals(accountCreationDate, user.accountCreationDate) && Objects.equals(lastLoginDate, user.lastLoginDate) && Objects.equals(lastOnlineDate, user.lastOnlineDate);
+        return Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(phoneNumber, user.phoneNumber) && Objects.equals(email, user.email);
     }
 
     @Override
@@ -161,7 +178,7 @@ public class User {
                 ", bio='" + bio + '\'' +
                 ", phoneNumber='" + phoneNumber + '\'' +
                 ", email='" + email + '\'' +
-                ", accountTypeId=" + accountTypeId +
+                ", accountType=" + getAccountType(accountTypeId) +
                 ", accountCreationDate=" + accountCreationDate +
                 ", lastLoginDate=" + lastLoginDate +
                 ", lastOnlineDate=" + lastOnlineDate +
