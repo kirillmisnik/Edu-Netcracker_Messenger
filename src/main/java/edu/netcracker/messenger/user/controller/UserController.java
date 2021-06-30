@@ -27,6 +27,7 @@ public class UserController {
     /**
      * Регистрирует пользователя.
      * @return id пользователя
+     * @throws UserAlreadyExistsException пользователь уже существует
      */
     @PutMapping()
     public @ResponseBody
@@ -51,6 +52,7 @@ public class UserController {
     /**
      * Возвращает список всех зарегистрированных пользователей.
      * @return зарегистрированные пользователи
+     * @throws UserNotFoundException пользователей не найдено
      */
     @GetMapping("/all")
     public @ResponseBody List<UserPublicView> allUsers() throws UserNotFoundException {
@@ -68,6 +70,7 @@ public class UserController {
      * Возвращает информацию о пользователе по id.
      * @param id id пользователя
      * @return информацию о пользователе
+     * @throws UserNotFoundException пользователь с даннм id не найден
      */
     @GetMapping("/{id}")
     public @ResponseBody
@@ -82,6 +85,7 @@ public class UserController {
      * Удаляет пользователя по id.
      * @param id id пользователя
      * @return id удаленного пользователя в случае успеха
+     * @throws UserNotFoundException пользователь с даннм id не найден
      */
     @DeleteMapping("/{id}")
     public @ResponseBody Long deleteUser(@PathVariable Long id) throws UserNotFoundException {

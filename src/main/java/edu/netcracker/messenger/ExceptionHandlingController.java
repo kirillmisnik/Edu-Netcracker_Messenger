@@ -1,7 +1,6 @@
-package edu.netcracker.messenger.user.controller;
+package edu.netcracker.messenger;
 
 import edu.netcracker.messenger.user.exceptions.UserAlreadyExistsException;
-import edu.netcracker.messenger.user.views.UserExceptionView;
 import edu.netcracker.messenger.user.exceptions.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -17,14 +16,14 @@ public class ExceptionHandlingController {
     @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(UserAlreadyExistsException.class)
     public @ResponseBody
-    UserExceptionView userAlreadyExistsExceptionHandler(UserAlreadyExistsException e) {
-        return new UserExceptionView(e.getErrorMessages(), HttpStatus.CONFLICT);
+    ExceptionView userAlreadyExistsExceptionHandler(UserAlreadyExistsException e) {
+        return new ExceptionView(e.getErrorMessages(), HttpStatus.CONFLICT);
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(UserNotFoundException.class)
     public @ResponseBody
-    UserExceptionView userNotFoundExceptionHandler(UserNotFoundException e) {
-        return new UserExceptionView(Collections.singletonList(e.getMessage()), HttpStatus.NOT_FOUND);
+    ExceptionView userNotFoundExceptionHandler(UserNotFoundException e) {
+        return new ExceptionView(Collections.singletonList(e.getMessage()), HttpStatus.NOT_FOUND);
     }
 }
