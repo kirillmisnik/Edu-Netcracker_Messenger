@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users
 (
     user_id BIGSERIAL NOT NULL UNIQUE,
     username VARCHAR(80) NOT NULL UNIQUE,
-    password VARCHAR(80) NOT NULL UNIQUE,
+    password VARCHAR(80) NOT NULL,
     first_name VARCHAR(80) NOT NULL,
     last_name VARCHAR(80) NOT NULL,
     bio VARCHAR(210),

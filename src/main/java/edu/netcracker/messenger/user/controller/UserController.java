@@ -1,7 +1,8 @@
 package edu.netcracker.messenger.user.controller;
 
 import edu.netcracker.messenger.user.User;
-import edu.netcracker.messenger.user.UserNotFoundException;
+import edu.netcracker.messenger.user.exceptions.UserAlreadyExists;
+import edu.netcracker.messenger.user.exceptions.UserNotFoundException;
 import edu.netcracker.messenger.user.UserRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,13 @@ public class UserController {
     @PutMapping()
     public @ResponseBody
     Long registerUser(@RequestBody User newUser) {
+        if (!repository.findByUsername(newUser.getUsername()).isEmpty()) {
+            throw new UserAlreadyExists("username", newUser.getUsername());
+        } else if (!repository.findByPhoneNumber(newUser.getPhoneNumber()).isEmpty()) {
+            throw new UserAlreadyExists("phone number", newUser.getPhoneNumber());
+        } else if (!repository.findByEmail(newUser.getEmail()).isEmpty()) {
+            throw new UserAlreadyExists("email", newUser.getEmail());
+        }
         repository.save(newUser);
         return newUser.getId();
     }

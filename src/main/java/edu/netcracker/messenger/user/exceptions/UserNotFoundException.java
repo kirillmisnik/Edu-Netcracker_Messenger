@@ -1,4 +1,4 @@
-package edu.netcracker.messenger.user;
+package edu.netcracker.messenger.user.exceptions;
 
 public class UserNotFoundException extends RuntimeException {
     public UserNotFoundException(Long id) {
