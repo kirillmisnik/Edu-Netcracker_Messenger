@@ -1,13 +1,18 @@
 package edu.netcracker.messenger.user.controller;
 
 import edu.netcracker.messenger.user.User;
-import edu.netcracker.messenger.user.exceptions.UserAlreadyExists;
+import edu.netcracker.messenger.user.exceptions.UserAlreadyExistsException;
 import edu.netcracker.messenger.user.exceptions.UserNotFoundException;
 import edu.netcracker.messenger.user.UserRepository;
+import edu.netcracker.messenger.user.views.UserPrivateView;
+import edu.netcracker.messenger.user.views.UserPublicView;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Controller
 @RequestMapping("user")
@@ -25,13 +30,19 @@ public class UserController {
      */
     @PutMapping()
     public @ResponseBody
-    Long registerUser(@RequestBody User newUser) {
+    Long registerUser(@RequestBody User newUser) throws UserAlreadyExistsException {
+        Map<String, String> errors = new TreeMap<>();
         if (!repository.findByUsername(newUser.getUsername()).isEmpty()) {
-            throw new UserAlreadyExists("username", newUser.getUsername());
-        } else if (!repository.findByPhoneNumber(newUser.getPhoneNumber()).isEmpty()) {
-            throw new UserAlreadyExists("phone number", newUser.getPhoneNumber());
-        } else if (!repository.findByEmail(newUser.getEmail()).isEmpty()) {
-            throw new UserAlreadyExists("email", newUser.getEmail());
+            errors.put("username", newUser.getUsername());
+        }
+        if (!repository.findByPhoneNumber(newUser.getPhoneNumber()).isEmpty()) {
+            errors.put("phone number", newUser.getPhoneNumber());
+        }
+        if (!repository.findByEmail(newUser.getEmail()).isEmpty()) {
+            errors.put("email", newUser.getEmail());
+        }
+        if (!errors.isEmpty()) {
+            throw new UserAlreadyExistsException(errors);
         }
         repository.save(newUser);
         return newUser.getId();
@@ -42,8 +53,15 @@ public class UserController {
      * @return зарегистрированные пользователи
      */
     @GetMapping("/all")
-    public @ResponseBody List<User> allUsers() {
-        return repository.findAll();
+    public @ResponseBody List<UserPublicView> allUsers() throws UserNotFoundException {
+        if (repository.findAll().isEmpty()) {
+            throw new UserNotFoundException();
+        }
+        List<UserPublicView> users = new ArrayList<>();
+        for (User user : repository.findAll()) {
+            users.add(new UserPublicView(user));
+        }
+        return users;
     }
 
     /**
@@ -52,8 +70,12 @@ public class UserController {
      * @return информацию о пользователе
      */
     @GetMapping("/{id}")
-    public @ResponseBody User getUserInfo(@PathVariable Long id) {
-        return repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+    public @ResponseBody
+    UserPrivateView getUserInfo(@PathVariable Long id) throws UserNotFoundException {
+        if (repository.findById(id).isEmpty()) {
+            throw new UserNotFoundException(id);
+        }
+        return new UserPrivateView(repository.findById(id).get());
     }
 
     /**
@@ -62,8 +84,8 @@ public class UserController {
      * @return id удаленного пользователя в случае успеха
      */
     @DeleteMapping("/{id}")
-    public @ResponseBody Long deleteUser(@PathVariable Long id) {
-        if (!repository.existsById(id)) {
+    public @ResponseBody Long deleteUser(@PathVariable Long id) throws UserNotFoundException {
+        if (repository.findById(id).isEmpty()) {
             throw new UserNotFoundException(id);
         }
         repository.deleteById(id);

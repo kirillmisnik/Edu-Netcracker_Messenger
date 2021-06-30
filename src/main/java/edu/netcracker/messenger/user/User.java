@@ -1,9 +1,10 @@
 package edu.netcracker.messenger.user;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Objects;
 
 @Entity
@@ -13,6 +14,7 @@ public class User {
     @Id
     @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonIgnore
     private Long id;
 
     @Column(name = "username")
@@ -37,118 +39,103 @@ public class User {
     private String email;
 
     @Column(name = "account_type_id")
-    private int accountTypeId;
+    @JsonIgnore
+    private int accountTypeId = 2;
 
     @Column(name = "account_creation_date")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", shape = JsonFormat.Shape.STRING)
-    private LocalDateTime accountCreationDate = LocalDateTime.now();
+    @JsonIgnore
+    private final LocalDateTime accountCreationDate = LocalDateTime.now();
 
     @Column(name = "last_login_date")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", shape = JsonFormat.Shape.STRING)
+    @JsonIgnore
     private LocalDateTime lastLoginDate;
 
     @Column(name = "last_online_date")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", shape = JsonFormat.Shape.STRING)
+    @JsonIgnore
     private LocalDateTime lastOnlineDate;
 
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getUsername() {
         return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public byte[] getPassword() {
         return password;
     }
 
-    public void setPassword(byte[] password) {
-        this.password = password;
-    }
-
     public String getFirstName() {
         return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
     }
 
     public String getLastName() {
         return lastName;
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
     public String getBio() {
         return bio;
-    }
-
-    public void setBio(String bio) {
-        this.bio = bio;
     }
 
     public String getPhoneNumber() {
         return phoneNumber;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
     public String getEmail() {
         return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public int getAccountTypeId() {
         return accountTypeId;
     }
 
-    public AccountType getAccountType(int id) {
-        return switch (id) {
-            case 1 -> AccountType.ADMIN;
-            case 2 -> AccountType.USER;
-            default -> AccountType.BLOCKED;
-        };
-    }
-
-    public void setAccountTypeId(int accountTypeId) {
-        this.accountTypeId = accountTypeId;
-    }
-
     public LocalDateTime getAccountCreationDate() {
         return accountCreationDate;
-    }
-
-    public void setAccountCreationDate(LocalDateTime accountCreationDate) {
-        this.accountCreationDate = accountCreationDate;
     }
 
     public LocalDateTime getLastLoginDate() {
         return lastLoginDate;
     }
 
-    public void setLastLoginDate(LocalDateTime lastLoginDate) {
-        this.lastLoginDate = lastLoginDate;
-    }
-
     public LocalDateTime getLastOnlineDate() {
         return lastOnlineDate;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(byte[] password) {
+        this.password = password;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setAccountTypeId(int accountTypeId) {
+        this.accountTypeId = accountTypeId;
+    }
+
+    public void setLastLoginDate(LocalDateTime lastLoginDate) {
+        this.lastLoginDate = lastLoginDate;
     }
 
     public void setLastOnlineDate(LocalDateTime lastOnlineDate) {
@@ -160,12 +147,14 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(phoneNumber, user.phoneNumber) && Objects.equals(email, user.email);
+        return accountTypeId == user.accountTypeId && Objects.equals(id, user.id) && Objects.equals(username, user.username) && Arrays.equals(password, user.password) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(bio, user.bio) && Objects.equals(phoneNumber, user.phoneNumber) && Objects.equals(email, user.email) && Objects.equals(accountCreationDate, user.accountCreationDate) && Objects.equals(lastLoginDate, user.lastLoginDate) && Objects.equals(lastOnlineDate, user.lastOnlineDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, username, firstName, lastName, bio, phoneNumber, email, accountTypeId, accountCreationDate, lastLoginDate, lastOnlineDate);
+        int result = Objects.hash(id, username, firstName, lastName, bio, phoneNumber, email, accountTypeId, accountCreationDate, lastLoginDate, lastOnlineDate);
+        result = 31 * result + Arrays.hashCode(password);
+        return result;
     }
 
     @Override
@@ -173,12 +162,13 @@ public class User {
         return "User{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
+                ", password=" + Arrays.toString(password) +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", bio='" + bio + '\'' +
                 ", phoneNumber='" + phoneNumber + '\'' +
                 ", email='" + email + '\'' +
-                ", accountType=" + getAccountType(accountTypeId) +
+                ", accountTypeId=" + accountTypeId +
                 ", accountCreationDate=" + accountCreationDate +
                 ", lastLoginDate=" + lastLoginDate +
                 ", lastOnlineDate=" + lastOnlineDate +
