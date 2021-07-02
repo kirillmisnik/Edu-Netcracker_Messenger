@@ -29,17 +29,17 @@ public class UserController {
      * @return id пользователя
      * @throws UserAlreadyExistsException пользователь уже существует
      */
-    @PutMapping()
+    @PutMapping
     public @ResponseBody
     Long registerUser(@RequestBody User newUser) throws UserAlreadyExistsException {
         Map<String, String> errors = new TreeMap<>();
-        if (!repository.findByUsername(newUser.getUsername()).isEmpty()) {
+        if (repository.findByUsername(newUser.getUsername()) != null) {
             errors.put("username", newUser.getUsername());
         }
-        if (!repository.findByPhoneNumber(newUser.getPhoneNumber()).isEmpty()) {
+        if (repository.findByPhoneNumber(newUser.getPhoneNumber()) != null) {
             errors.put("phone number", newUser.getPhoneNumber());
         }
-        if (!repository.findByEmail(newUser.getEmail()).isEmpty()) {
+        if (repository.findByEmail(newUser.getEmail()) != null) {
             errors.put("email", newUser.getEmail());
         }
         if (!errors.isEmpty()) {
@@ -101,7 +101,7 @@ public class UserController {
      * @param id id пользователя
      * @return подтверждение входа
      */
-    @PostMapping("/{id}")
+    @PostMapping("/login/{id}")
     public @ResponseBody String loginUser(@PathVariable Long id) {
         return String.format("Session started with user %d", id);
     }
