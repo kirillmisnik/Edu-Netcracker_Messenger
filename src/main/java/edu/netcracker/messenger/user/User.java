@@ -1,15 +1,17 @@
 package edu.netcracker.messenger.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements UserDetails {
 
     @Id
     @Column(name = "user_id")
@@ -21,7 +23,7 @@ public class User {
     private String username;
 
     @Column(name = "password")
-    private byte[] password;
+    private String password;
 
     @Column(name = "first_name")
     private String firstName;
@@ -58,11 +60,39 @@ public class User {
         return id;
     }
 
+    @Override
     public String getUsername() {
         return username;
     }
 
-    public byte[] getPassword() {
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(getAccountType());
+        return Collections.singletonList(authority);
+    }
+
+    @Override
+    public String getPassword() {
         return password;
     }
 
@@ -90,6 +120,10 @@ public class User {
         return accountTypeId;
     }
 
+    public String getAccountType() {
+        return "USER";
+    }
+
     public LocalDateTime getAccountCreationDate() {
         return accountCreationDate;
     }
@@ -106,7 +140,7 @@ public class User {
         this.username = username;
     }
 
-    public void setPassword(byte[] password) {
+    public void setPassword(String password) {
         this.password = password;
     }
 
@@ -140,38 +174,5 @@ public class User {
 
     public void setLastOnlineDate(LocalDateTime lastOnlineDate) {
         this.lastOnlineDate = lastOnlineDate;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return accountTypeId == user.accountTypeId && Objects.equals(id, user.id) && Objects.equals(username, user.username) && Arrays.equals(password, user.password) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(bio, user.bio) && Objects.equals(phoneNumber, user.phoneNumber) && Objects.equals(email, user.email) && Objects.equals(accountCreationDate, user.accountCreationDate) && Objects.equals(lastLoginDate, user.lastLoginDate) && Objects.equals(lastOnlineDate, user.lastOnlineDate);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = Objects.hash(id, username, firstName, lastName, bio, phoneNumber, email, accountTypeId, accountCreationDate, lastLoginDate, lastOnlineDate);
-        result = 31 * result + Arrays.hashCode(password);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", password=" + Arrays.toString(password) +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", bio='" + bio + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                ", email='" + email + '\'' +
-                ", accountTypeId=" + accountTypeId +
-                ", accountCreationDate=" + accountCreationDate +
-                ", lastLoginDate=" + lastLoginDate +
-                ", lastOnlineDate=" + lastOnlineDate +
-                '}';
     }
 }
