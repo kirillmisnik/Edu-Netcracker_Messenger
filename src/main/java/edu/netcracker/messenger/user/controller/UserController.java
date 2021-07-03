@@ -1,7 +1,6 @@
 package edu.netcracker.messenger.user.controller;
 
 import edu.netcracker.messenger.user.User;
-import edu.netcracker.messenger.user.exceptions.UserAlreadyExistsException;
 import edu.netcracker.messenger.user.exceptions.UserNotFoundException;
 import edu.netcracker.messenger.user.UserRepository;
 import edu.netcracker.messenger.user.views.UserPrivateView;
@@ -11,8 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 @Controller
 @RequestMapping("user")
@@ -22,31 +19,6 @@ public class UserController {
 
     UserController(UserRepository repository) {
         this.repository = repository;
-    }
-
-    /**
-     * Регистрирует пользователя.
-     * @return id пользователя
-     * @throws UserAlreadyExistsException пользователь уже существует
-     */
-    @PutMapping
-    public @ResponseBody
-    Long registerUser(@RequestBody User newUser) throws UserAlreadyExistsException {
-        Map<String, String> errors = new TreeMap<>();
-        if (repository.findByUsername(newUser.getUsername()) != null) {
-            errors.put("username", newUser.getUsername());
-        }
-        if (repository.findByPhoneNumber(newUser.getPhoneNumber()) != null) {
-            errors.put("phone number", newUser.getPhoneNumber());
-        }
-        if (repository.findByEmail(newUser.getEmail()) != null) {
-            errors.put("email", newUser.getEmail());
-        }
-        if (!errors.isEmpty()) {
-            throw new UserAlreadyExistsException(errors);
-        }
-        repository.save(newUser);
-        return newUser.getId();
     }
 
     /**

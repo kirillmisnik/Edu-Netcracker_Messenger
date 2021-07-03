@@ -1,4 +1,4 @@
-package edu.netcracker.messenger;
+package edu.netcracker.messenger.user.views;
 
 import org.springframework.http.HttpStatus;
 

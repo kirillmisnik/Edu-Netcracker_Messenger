@@ -2,6 +2,7 @@ package edu.netcracker.messenger;
 
 import edu.netcracker.messenger.user.exceptions.UserAlreadyExistsException;
 import edu.netcracker.messenger.user.exceptions.UserNotFoundException;
+import edu.netcracker.messenger.user.views.ExceptionView;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
