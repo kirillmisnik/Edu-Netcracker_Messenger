@@ -20,15 +20,62 @@ Netcracker EDU Summer 2021 - Индивидуальный учебный про�
 ### API
 #### User
 
-`PUT /user` - регистрирует пользователя
+`POST /registration` - регистрирует пользователя
+
+Пример тела запроса:
+```json
+{
+  "username": "johnsmith",
+  "password": "john123", 
+  "firstName": "John", 
+  "lastName": "Smith", 
+  "bio": "Sample user", // Опционально
+  "phoneNumber": "+7 (987) 123-45-67",
+  "email": "johnsmith@gmail.com"
+}
+```
 
 `GET /user/{id}` - возвращает данные по пользователю
 
+Пример ответа:
+```json
+{
+    "id": 2,
+    "username": "johnsmith",
+    "firstName": "John",
+    "lastName": "Smith",
+    "bio": "I am a sample user.",
+    "phoneNumber": "+7 (999) 123-45-67",
+    "email": "johnsmith@gmail.com",
+    "lastOnlineDate": "2021-06-28T14:00:07"
+}
+```
+
 `GET /user/all` - возвращает данные по всем пользователям
 
-`DELETE /user/{id}` - удаляет пользователя
+Пример ответа:
+```json
+[
+    {
+        "id": 1,
+        "username": "kirillmisnik",
+        "firstName": "Kirill",
+        "lastName": "Misnik",
+        "bio": "I am a Java junior developer.",
+        "lastOnlineDate": "2021-06-28T14:00:07"
+    },
+    {
+        "id": 2,
+        "username": "johnsmith",
+        "firstName": "John",
+        "lastName": "Smith",
+        "bio": "I am a sample user.",
+        "lastOnlineDate": "2021-06-28T14:00:07"
+    }
+]
+```
 
-`POST /user/{id}` - ~~выполняет вход от лица пользователя~~
+`DELETE /user/{id}` - удаляет пользователя по id
 
 `GET /user/{id}/chats` - ~~возвращает список id всех чатов, доступных пользователю~~
 
