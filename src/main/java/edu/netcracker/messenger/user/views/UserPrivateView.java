@@ -4,7 +4,7 @@ import edu.netcracker.messenger.user.User;
 
 import java.time.LocalDateTime;
 
-public class UserPrivateView {
+public class UserPrivateView extends UserView {
 
     private final Long id;
 

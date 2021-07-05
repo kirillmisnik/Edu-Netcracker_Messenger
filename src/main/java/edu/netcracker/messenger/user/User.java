@@ -121,7 +121,11 @@ public class User implements UserDetails {
     }
 
     public String getAccountType() {
-        return "USER";
+        return switch (getAccountTypeId()) {
+            case 1 -> "ADMIN";
+            case 2 -> "USER";
+            default -> "BLOCKED";
+        };
     }
 
     public LocalDateTime getAccountCreationDate() {
