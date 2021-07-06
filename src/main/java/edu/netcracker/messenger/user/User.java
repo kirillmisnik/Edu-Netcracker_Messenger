@@ -42,11 +42,7 @@ public class User implements UserDetails {
 
     @Column(name = "account_type_id")
     @JsonIgnore
-    private int accountTypeId;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    @PrimaryKeyJoinColumn
-    private AccountType accountType;
+    private int accountTypeId = 2;
 
     @Column(name = "account_creation_date")
     @JsonIgnore
@@ -76,7 +72,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return !getAccountType().equals(AccountType.BLOCKED);
     }
 
     @Override
@@ -91,7 +87,7 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(getAccountType());
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(getAccountType().name());
         return Collections.singletonList(authority);
     }
 
@@ -124,8 +120,12 @@ public class User implements UserDetails {
         return accountTypeId;
     }
 
-    public String getAccountType() {
-        return accountType.getAccountType();
+    public AccountType getAccountType() {
+        return switch (getAccountTypeId()) {
+            case 1 -> AccountType.ADMIN;
+            case 2 -> AccountType.USER;
+            default -> AccountType.BLOCKED;
+        };
     }
 
     public LocalDateTime getAccountCreationDate() {

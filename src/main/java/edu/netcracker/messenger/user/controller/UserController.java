@@ -1,5 +1,6 @@
 package edu.netcracker.messenger.user.controller;
 
+import edu.netcracker.messenger.user.AccountType;
 import edu.netcracker.messenger.user.User;
 import edu.netcracker.messenger.user.exceptions.UserNotFoundException;
 import edu.netcracker.messenger.user.UserRepository;
@@ -35,7 +36,7 @@ public class UserController {
             throw new UserNotFoundException();
         }
         List<UserView> users = new ArrayList<>();
-        if (repository.findByUsername(principal.getName()).getAccountType().equals("ADMIN")) {
+        if (repository.findByUsername(principal.getName()).getAccountType().equals(AccountType.ADMIN)) {
             for (User user : repository.findAll()) {
                 users.add(new UserPrivateView(user));
             }
@@ -59,9 +60,8 @@ public class UserController {
         if (repository.findById(id).isEmpty()) {
             throw new UserNotFoundException(id);
         }
-        System.out.println(repository.findById(id).get().getAccountType());
         if (repository.findByUsername(principal.getName()).getId().equals(id) ||
-                repository.findByUsername(principal.getName()).getAccountType().equals("ADMIN"))  {
+                repository.findByUsername(principal.getName()).getAccountType().equals(AccountType.ADMIN))  {
             return new UserPrivateView(repository.findById(id).get());
         }
         return new UserPublicView(repository.findById(id).get());
@@ -81,7 +81,7 @@ public class UserController {
             throw new UserNotFoundException(id);
         }
         if (!repository.findByUsername(principal.getName()).getId().equals(id) &&
-                !repository.findByUsername(principal.getName()).getAccountType().equals("ADMIN"))  {
+                !repository.findByUsername(principal.getName()).getAccountType().equals(AccountType.ADMIN))  {
             throw new AccessDeniedException(String.format("You don't have permission to delete user with id: %d", id));
         }
         repository.deleteById(id);
