@@ -59,6 +59,7 @@ public class UserController {
         if (repository.findById(id).isEmpty()) {
             throw new UserNotFoundException(id);
         }
+        System.out.println(repository.findById(id).get().getAccountType());
         if (repository.findByUsername(principal.getName()).getId().equals(id) ||
                 repository.findByUsername(principal.getName()).getAccountType().equals("ADMIN"))  {
             return new UserPrivateView(repository.findById(id).get());

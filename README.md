@@ -29,7 +29,7 @@ Netcracker EDU Summer 2021 - Индивидуальный учебный про�
   "password": "john123", 
   "firstName": "John", 
   "lastName": "Smith", 
-  "bio": "Sample user", // Опционально
+  "bio": "Sample user",
   "phoneNumber": "+7 (987) 123-45-67",
   "email": "johnsmith@gmail.com"
 }

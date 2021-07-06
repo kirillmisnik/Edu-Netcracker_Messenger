@@ -42,7 +42,11 @@ public class User implements UserDetails {
 
     @Column(name = "account_type_id")
     @JsonIgnore
-    private int accountTypeId = 2;
+    private int accountTypeId;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @PrimaryKeyJoinColumn
+    private AccountType accountType;
 
     @Column(name = "account_creation_date")
     @JsonIgnore
@@ -121,11 +125,7 @@ public class User implements UserDetails {
     }
 
     public String getAccountType() {
-        return switch (getAccountTypeId()) {
-            case 1 -> "ADMIN";
-            case 2 -> "USER";
-            default -> "BLOCKED";
-        };
+        return accountType.getAccountType();
     }
 
     public LocalDateTime getAccountCreationDate() {
