@@ -14,9 +14,9 @@ import java.util.*;
 public class User implements UserDetails {
 
     @Id
+    @JsonIgnore
     @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonIgnore
     private Long id;
 
     @Column(name = "username")
@@ -40,20 +40,20 @@ public class User implements UserDetails {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "account_type_id")
     @JsonIgnore
+    @Column(name = "account_type_id")
     private int accountTypeId = 2;
 
-    @Column(name = "account_creation_date")
     @JsonIgnore
+    @Column(name = "account_creation_date")
     private final LocalDateTime accountCreationDate = LocalDateTime.now();
 
-    @Column(name = "last_login_date")
     @JsonIgnore
+    @Column(name = "last_login_date")
     private LocalDateTime lastLoginDate;
 
-    @Column(name = "last_online_date")
     @JsonIgnore
+    @Column(name = "last_online_date")
     private LocalDateTime lastOnlineDate;
 
     public Long getId() {
