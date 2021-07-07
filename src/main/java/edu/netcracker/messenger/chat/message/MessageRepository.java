@@ -9,4 +9,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Query(value = "SELECT * FROM messages WHERE chat_id = ?1", nativeQuery = true)
     List<Message> findByChatId(Long chatId);
+
+    @Query(value = "SELECT * FROM messages WHERE chat_id = ?1 ORDER BY creation_date DESC LIMIT 1", nativeQuery = true)
+    Message latestInChat(Long chatId);
 }

@@ -6,17 +6,13 @@ import edu.netcracker.messenger.chat.exceptions.ChatNotFoundException;
 import edu.netcracker.messenger.chat.message.Message;
 import edu.netcracker.messenger.chat.message.MessageRepository;
 import edu.netcracker.messenger.chat.message.view.MessageBody;
-import edu.netcracker.messenger.chat.message.view.MessageView;
 import edu.netcracker.messenger.user.User;
 import edu.netcracker.messenger.user.UserRepository;
 import edu.netcracker.messenger.user.exceptions.UserNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -29,11 +25,7 @@ public class PersonalChatController {
 
     private final UserRepository userRepository;
 
-    @PersistenceContext
-    EntityManager entityManager;
-
-    public PersonalChatController(PersonalChatRepository chatRepository,
-                                  MessageRepository messageRepository,
+    public PersonalChatController(PersonalChatRepository chatRepository, MessageRepository messageRepository,
                                   UserRepository userRepository) {
         this.chatRepository = chatRepository;
         this.messageRepository = messageRepository;
@@ -44,10 +36,11 @@ public class PersonalChatController {
      * Создает чат.
      * @param id id адресата
      * @return id созданного чата
+     * @throws UserNotFoundException пользователь с даннм id не найден
      */
     @PostMapping("/create/{id}")
     public @ResponseBody
-    PersonalChat createChat(Principal user, @PathVariable Long id) {
+    PersonalChat createChat(Principal user, @PathVariable Long id) throws UserNotFoundException {
         if (userRepository.findById(id).isEmpty()) {
             throw new UserNotFoundException(id);
         }
@@ -78,16 +71,24 @@ public class PersonalChatController {
      */
     @GetMapping("/{chatId}/messages")
     public @ResponseBody
-    List<MessageView> getMessages(@PathVariable Long chatId) {
+    List<Message> getMessages(@PathVariable Long chatId) {
         if (chatRepository.findById(chatId).isEmpty()) {
             throw new ChatNotFoundException(chatId);
         }
-        List<MessageView> messages = new ArrayList<>();
-        for (Message message : messageRepository.findByChatId(chatId)) {
-            messages.add(new MessageView(message.getSenderId(), message.getText(), message.getAttachmentId(),
-                    message.getAttachmentFilename(), message.getReadDate()));
+        return messageRepository.findByChatId(chatId);
+    }
+
+    /**
+     * Последнее сообщение из чата.
+     * @param chatId id чата
+     * @return последнее сообщение
+     */
+    @GetMapping("/{chatId}/latest")
+    public @ResponseBody Message getNewMessage(@PathVariable Long chatId) {
+        if (chatRepository.findById(chatId).isEmpty()) {
+            throw new ChatNotFoundException(chatId);
         }
-        return messages;
+        return messageRepository.latestInChat(chatId);
     }
 
     /**

@@ -1,5 +1,7 @@
 package edu.netcracker.messenger.chat.message;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -32,8 +34,7 @@ public class Message {
     @Column(name = "read_date")
     private LocalDateTime readDate;
 
-    public Message() {
-    }
+    public Message() {}
 
     public Message(Long chatId, Long senderId, String text) {
         this.chatId = chatId;
@@ -41,14 +42,17 @@ public class Message {
         this.text = text;
     }
 
+    @JsonIgnore
     public Long getMessageId() {
         return messageId;
     }
 
+    @JsonIgnore
     public Long getChatId() {
         return chatId;
     }
 
+    @JsonIgnore
     public Long getSenderId() {
         return senderId;
     }
