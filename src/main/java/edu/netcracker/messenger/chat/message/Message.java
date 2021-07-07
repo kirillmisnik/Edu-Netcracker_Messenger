@@ -32,6 +32,15 @@ public class Message {
     @Column(name = "read_date")
     private LocalDateTime readDate;
 
+    public Message() {
+    }
+
+    public Message(Long chatId, Long senderId, String text) {
+        this.chatId = chatId;
+        this.senderId = senderId;
+        this.text = text;
+    }
+
     public Long getMessageId() {
         return messageId;
     }

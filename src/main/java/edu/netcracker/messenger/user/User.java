@@ -41,8 +41,9 @@ public class User implements UserDetails {
     private String email;
 
     @JsonIgnore
-    @Column(name = "account_type_id")
-    private int accountTypeId = 2;
+    @Column(name = "account_type")
+    @Enumerated(EnumType.STRING)
+    private AccountType accountType = AccountType.USER;
 
     @JsonIgnore
     @Column(name = "account_creation_date")
@@ -116,16 +117,8 @@ public class User implements UserDetails {
         return email;
     }
 
-    public int getAccountTypeId() {
-        return accountTypeId;
-    }
-
     public AccountType getAccountType() {
-        return switch (getAccountTypeId()) {
-            case 1 -> AccountType.ADMIN;
-            case 2 -> AccountType.USER;
-            default -> AccountType.BLOCKED;
-        };
+        return accountType;
     }
 
     public LocalDateTime getAccountCreationDate() {
@@ -168,8 +161,8 @@ public class User implements UserDetails {
         this.email = email;
     }
 
-    public void setAccountTypeId(int accountTypeId) {
-        this.accountTypeId = accountTypeId;
+    public void setAccountType(AccountType accountType) {
+        this.accountType = accountType;
     }
 
     public void setLastLoginDate(LocalDateTime lastLoginDate) {

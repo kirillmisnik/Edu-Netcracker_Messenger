@@ -2,14 +2,19 @@ package edu.netcracker.messenger.chat.controller;
 
 import edu.netcracker.messenger.chat.PersonalChat;
 import edu.netcracker.messenger.chat.PersonalChatRepository;
+import edu.netcracker.messenger.chat.exceptions.ChatNotFoundException;
 import edu.netcracker.messenger.chat.message.Message;
 import edu.netcracker.messenger.chat.message.MessageRepository;
+import edu.netcracker.messenger.chat.message.view.MessageBody;
 import edu.netcracker.messenger.chat.message.view.MessageView;
 import edu.netcracker.messenger.user.User;
 import edu.netcracker.messenger.user.UserRepository;
+import edu.netcracker.messenger.user.exceptions.UserNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +29,12 @@ public class PersonalChatController {
 
     private final UserRepository userRepository;
 
-    public PersonalChatController(PersonalChatRepository chatRepository, MessageRepository messageRepository, UserRepository userRepository) {
+    @PersistenceContext
+    EntityManager entityManager;
+
+    public PersonalChatController(PersonalChatRepository chatRepository,
+                                  MessageRepository messageRepository,
+                                  UserRepository userRepository) {
         this.chatRepository = chatRepository;
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
@@ -38,6 +48,9 @@ public class PersonalChatController {
     @PostMapping("/create/{id}")
     public @ResponseBody
     PersonalChat createChat(Principal user, @PathVariable Long id) {
+        if (userRepository.findById(id).isEmpty()) {
+            throw new UserNotFoundException(id);
+        }
         User sender = userRepository.findByUsername(user.getName());
         User recipient = userRepository.findById(id).get();
         PersonalChat chat = new PersonalChat(sender.getId(), id, recipient.getUsername());
@@ -51,7 +64,10 @@ public class PersonalChatController {
      * @return очередь сообщений чата
      */
     @GetMapping("/{chatId}")
-    public @ResponseBody PersonalChat getChatMessages(@PathVariable Long chatId){
+    public @ResponseBody PersonalChat getChatMessages(@PathVariable Long chatId) {
+        if (chatRepository.findById(chatId).isEmpty()) {
+            throw new ChatNotFoundException(chatId);
+        }
         return chatRepository.findById(chatId).get();
     }
 
@@ -63,6 +79,9 @@ public class PersonalChatController {
     @GetMapping("/{chatId}/messages")
     public @ResponseBody
     List<MessageView> getMessages(@PathVariable Long chatId) {
+        if (chatRepository.findById(chatId).isEmpty()) {
+            throw new ChatNotFoundException(chatId);
+        }
         List<MessageView> messages = new ArrayList<>();
         for (Message message : messageRepository.findByChatId(chatId)) {
             messages.add(new MessageView(message.getSenderId(), message.getText(), message.getAttachmentId(),
@@ -77,8 +96,13 @@ public class PersonalChatController {
      * @return подтверждение удаления
      */
     @DeleteMapping("/{chatId}")
-    public @ResponseBody String deleteChat(@PathVariable Long chatId){
-        return String.format("Chat %d was deleted", chatId);
+    public @ResponseBody Long deleteChat(@PathVariable Long chatId) {
+        if (chatRepository.findById(chatId).isEmpty()) {
+            throw new ChatNotFoundException(chatId);
+        }
+        messageRepository.deleteAll(messageRepository.findByChatId(chatId));
+        chatRepository.deleteById(chatId);
+        return chatId;
     }
 
     /**
@@ -88,7 +112,14 @@ public class PersonalChatController {
      */
     @PostMapping("/{chatId}")
     public @ResponseBody
-    String sendMessage(@PathVariable Long chatId){
-        return String.format("Message sent to chat %d", chatId);
+    Long sendMessage(Principal user, @PathVariable Long chatId, @RequestBody MessageBody messageBody) {
+        if (chatRepository.findById(chatId).isEmpty()) {
+            throw new ChatNotFoundException(chatId);
+        }
+        Message message = new Message(chatId, userRepository.findByUsername(user.getName()).getId(),
+                messageBody.getText());
+        messageRepository.save(message);
+
+        return message.getMessageId();
     }
 }

@@ -1,5 +1,6 @@
 package edu.netcracker.messenger;
 
+import edu.netcracker.messenger.chat.exceptions.ChatNotFoundException;
 import edu.netcracker.messenger.user.exceptions.UserAlreadyExistsException;
 import edu.netcracker.messenger.user.exceptions.UserNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -33,5 +34,12 @@ public class ExceptionHandlingController {
     public @ResponseBody
     ExceptionView accessDeniedException(AccessDeniedException e) {
         return new ExceptionView(Collections.singletonList(e.getMessage()), HttpStatus.FORBIDDEN);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(ChatNotFoundException.class)
+    public @ResponseBody
+    ExceptionView chatNotFoundExceptionHandler(ChatNotFoundException e) {
+        return new ExceptionView(Collections.singletonList(e.getMessage()), HttpStatus.NOT_FOUND);
     }
 }

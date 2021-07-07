@@ -94,7 +94,8 @@ public class UserController {
      * @return список id чатов
      */
     @GetMapping("/{id}/chats")
-    public @ResponseBody String getChatsFromUser(@PathVariable Long id){
+    public @ResponseBody String getUserChats(@PathVariable Long id) {
+
         return String.format("All user %d chats", id);
     }
 }

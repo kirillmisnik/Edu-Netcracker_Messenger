@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users
     bio VARCHAR(210),
     phone_number VARCHAR(80) NOT NULL UNIQUE,
     email VARCHAR(80) UNIQUE,
-    account_type_id SERIAL NOT NULL,
+    account_type VARCHAR(80) NOT NULL,
     account_creation_date TIMESTAMP NOT NULL,
     last_login_date TIMESTAMP,
     last_online_date TIMESTAMP,
