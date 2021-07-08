@@ -1,5 +1,7 @@
 package edu.netcracker.messenger.user.controller;
 
+import edu.netcracker.messenger.chat.PersonalChat;
+import edu.netcracker.messenger.chat.PersonalChatRepository;
 import edu.netcracker.messenger.user.AccountType;
 import edu.netcracker.messenger.user.User;
 import edu.netcracker.messenger.user.exceptions.UserNotFoundException;
@@ -21,8 +23,11 @@ public class UserController {
 
     private final UserRepository repository;
 
-    UserController(UserRepository repository) {
+    private final PersonalChatRepository chatRepository;
+
+    UserController(UserRepository repository, PersonalChatRepository chatRepository) {
         this.repository = repository;
+        this.chatRepository = chatRepository;
     }
 
     /**
@@ -94,8 +99,11 @@ public class UserController {
      * @return список id чатов
      */
     @GetMapping("/{id}/chats")
-    public @ResponseBody String getUserChats(@PathVariable Long id) {
-
-        return String.format("All user %d chats", id);
+    public @ResponseBody
+    List<PersonalChat> getUserChats(@PathVariable Long id) {
+        if (repository.findById(id).isEmpty()) {
+            throw new UserNotFoundException(id);
+        }
+        return chatRepository.findByUserId(id);
     }
 }

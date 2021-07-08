@@ -52,7 +52,7 @@ public class PersonalChatController {
     }
 
     /**
-     * Возвращает сообщения чата.
+     * Возвращает информацию о чате.
      * @param chatId id чата
      * @return очередь сообщений чата
      */
@@ -76,6 +76,37 @@ public class PersonalChatController {
             throw new ChatNotFoundException(chatId);
         }
         return messageRepository.findByChatId(chatId);
+    }
+
+    /**
+     * Возвращает сообщения чата (дефолтный размер страницы).
+     * @param messageId id сообщения
+     * @return очередь сообщений чата
+     */
+    @GetMapping("/messages/{messageId}")
+    public @ResponseBody List<Message> getChatMessagesCount(@PathVariable Long messageId) {
+        return messageRepository.findByMessageId(messageId);
+    }
+
+    /**
+     * Возвращает сообщения чата (заданный размер страницы).
+     * @param messageId id сообщения
+     * @return очередь сообщений чата
+     */
+    @GetMapping("/messages/{messageId}/{pageSize}")
+    public @ResponseBody List<Message> getChatMessagesCount(@PathVariable Long messageId, @PathVariable Long pageSize) {
+        return messageRepository.findByMessageId(messageId, pageSize);
+    }
+
+    /**
+     * Возвращает сообщения чата (заданный размер страницы, номер страницы).
+     * @param messageId id сообщения
+     * @return очередь сообщений чата
+     */
+    @GetMapping("/messages/{messageId}/{pageSize}/{pageNumber}")
+    public @ResponseBody List<Message> getChatMessagesCount(@PathVariable Long messageId, @PathVariable Long pageSize,
+                                                            @PathVariable Long pageNumber) {
+        return messageRepository.findByMessageId(messageId, pageSize, pageNumber);
     }
 
     /**

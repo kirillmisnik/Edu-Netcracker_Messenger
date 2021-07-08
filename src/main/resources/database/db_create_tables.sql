@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS messages
     chat_id BIGSERIAL NOT NULL,
     user_id BIGSERIAL NOT NULL,
     text VARCHAR(1000) NOT NULL,
-    attachment_id BIGSERIAL,
+    attachment_id INT,
     attachment_filename VARCHAR(80),
     creation_date TIMESTAMP NOT NULL,
     read_date TIMESTAMP,
