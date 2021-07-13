@@ -47,18 +47,16 @@ public class PersonalChatController {
     /**
      * Creates a personal chat with user (if it does not already exists).
      * @param user logged in user
-     * @param id user id
+     * @param userId user id
      * @return created chat id
      */
-    @PostMapping("/create/{id}")
+    @PostMapping("/create/{userId}")
     public @ResponseBody
-    PersonalChat createChat(Principal user, @PathVariable Long id) {
-        if (userRepository.findById(id).isEmpty()) {
-            throw new UserNotFoundException(id);
-        }
+    PersonalChat createChat(Principal user, @PathVariable Long userId) {
+        throwIfUserNotExists(userId);
         User sender = userRepository.findByUsername(user.getName());
-        User recipient = userRepository.findById(id).get();
-        PersonalChat chat = new PersonalChat(sender.getId(), id, recipient.getUsername());
+        User recipient = userRepository.findById(userId).get();
+        PersonalChat chat = new PersonalChat(sender.getId(), userId, recipient.getUsername());
         chatRepository.save(chat);
         return chat;
     }
@@ -126,9 +124,9 @@ public class PersonalChatController {
      */
     @PostMapping("/{chatId}")
     public @ResponseBody
-    Long sendMessage(Principal user, @PathVariable Long chatId, @RequestBody MessageBody messageBody) {
+    Long sendMessage(Principal loggedInUser, @PathVariable Long chatId, @RequestBody MessageBody messageBody) {
         throwIfChatNotExists(chatId);
-        Message message = new Message(chatId, userRepository.findByUsername(user.getName()).getId(),
+        Message message = new Message(chatId, userRepository.findByUsername(loggedInUser.getName()).getId(),
                 messageBody.getText());
         messageRepository.save(message);
 
@@ -137,12 +135,23 @@ public class PersonalChatController {
 
     /**
      * Проверяет, существует ли чат с заданным id.
-     * @param id id чата
+     * @param chatId id чата
      * @throws ChatNotFoundException чат не найден
      */
-    private void throwIfChatNotExists(Long id) throws ChatNotFoundException {
-        if (chatRepository.findById(id).isEmpty()) {
-            throw new ChatNotFoundException(id);
+    private void throwIfChatNotExists(Long chatId) throws ChatNotFoundException {
+        if (chatRepository.findById(chatId).isEmpty()) {
+            throw new ChatNotFoundException(chatId);
+        }
+    }
+
+    /**
+     * Checks if the user with the given id exists.
+     * @param userId user id
+     * @throws UserNotFoundException user is not found
+     */
+    private void throwIfUserNotExists(Long userId) throws UserNotFoundException {
+        if (userRepository.findById(userId).isEmpty()) {
+            throw new UserNotFoundException(userId);
         }
     }
 }

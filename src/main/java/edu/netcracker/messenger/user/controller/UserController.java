@@ -70,7 +70,7 @@ public class UserController {
     public @ResponseBody
     UserView getUserInfo(Principal loggedInUser, @PathVariable Long id) {
         throwIfUserNotExists(id);
-        if (hasPermission(loggedInUser, id))  {
+        if (hasPermission(loggedInUser, id)) {
             return new UserPrivateView(userRepository.findById(id).get());
         }
         return new UserPublicView(userRepository.findById(id).get());
@@ -84,7 +84,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     public @ResponseBody Long deleteUser(Principal loggedInUser, @PathVariable Long id) {
         throwIfUserNotExists(id);
-        if (!hasPermission(loggedInUser, id))  {
+        if (!hasPermission(loggedInUser, id)) {
             throw new AccessDeniedException(
                     String.format("You don't have permission to delete user with id: %d", id));
         }
@@ -102,7 +102,7 @@ public class UserController {
     public @ResponseBody Long blockUser(Principal loggedInUser, @PathVariable Long id) {
         throwIfUserNotExists(id);
         User userById = userRepository.findByUsername(loggedInUser.getName());
-        if (!userById.getAccountType().equals(AccountType.ADMIN))  {
+        if (!userById.getAccountType().equals(AccountType.ADMIN)) {
             throw new AccessDeniedException("You don't have permission to block users.");
         }
         userById.setAccountType(AccountType.BLOCKED);
@@ -119,7 +119,7 @@ public class UserController {
     public @ResponseBody
     List<PersonalChat> getUserChats(Principal loggedInUser, @PathVariable Long id) {
         throwIfUserNotExists(id);
-        if (!hasPermission(loggedInUser, id))  {
+        if (!hasPermission(loggedInUser, id)) {
             throw new AccessDeniedException(
                     String.format("You don't have permission to access chat(s) of the user with id: %d", id));
         }

@@ -88,4 +88,8 @@ public class Message {
     public void setAttachmentFilename(String attachmentFilename) {
         this.attachmentFilename = attachmentFilename;
     }
+
+    public void setReadDate() {
+        this.readDate = LocalDateTime.now();
+    }
 }
