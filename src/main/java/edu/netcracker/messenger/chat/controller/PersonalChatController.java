@@ -15,14 +15,26 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 
+/**
+ * Controller for handling requests related to personal messages.
+ */
 @Controller
 @RequestMapping("chat/personal")
 public class PersonalChatController {
 
+    /**
+     * Personal chat JPA repository.
+     */
     private final PersonalChatRepository chatRepository;
 
+    /**
+     * Message JPA repository.
+     */
     private final MessageRepository messageRepository;
 
+    /**
+     * User JPA repository.
+     */
     private final UserRepository userRepository;
 
     public PersonalChatController(PersonalChatRepository chatRepository, MessageRepository messageRepository,
@@ -33,14 +45,14 @@ public class PersonalChatController {
     }
 
     /**
-     * Создает чат.
-     * @param id id адресата
-     * @return id созданного чата
-     * @throws UserNotFoundException пользователь с даннм id не найден
+     * Creates a personal chat with user (if it does not already exists).
+     * @param user logged in user
+     * @param id user id
+     * @return created chat id
      */
     @PostMapping("/create/{id}")
     public @ResponseBody
-    PersonalChat createChat(Principal user, @PathVariable Long id) throws UserNotFoundException {
+    PersonalChat createChat(Principal user, @PathVariable Long id) {
         if (userRepository.findById(id).isEmpty()) {
             throw new UserNotFoundException(id);
         }
@@ -52,74 +64,46 @@ public class PersonalChatController {
     }
 
     /**
-     * Возвращает информацию о чате.
-     * @param chatId id чата
-     * @return очередь сообщений чата
+     * Returns chat information. The information depends on the user who makes the request.
+     * @param user logged in user
+     * @param chatId chat id
+     * @return chat information
      */
     @GetMapping("/{chatId}")
-    public @ResponseBody PersonalChat getChatMessages(@PathVariable Long chatId) {
-        if (chatRepository.findById(chatId).isEmpty()) {
-            throw new ChatNotFoundException(chatId);
-        }
+    public @ResponseBody PersonalChat getChatInfo(Principal user, @PathVariable Long chatId) {
+        throwIfChatNotExists(chatId);
         return chatRepository.findById(chatId).get();
     }
 
     /**
-     * Возвращает сообщения чата.
+     * Возвращает все сообщения чата.
      * @param chatId id чата
-     * @return очередь сообщений чата
+     * @return список сообщений чата
      */
-    @GetMapping("/{chatId}/messages")
+    @GetMapping("/{chatId}/messages/all")
     public @ResponseBody
-    List<Message> getMessages(@PathVariable Long chatId) {
-        if (chatRepository.findById(chatId).isEmpty()) {
-            throw new ChatNotFoundException(chatId);
-        }
-        return messageRepository.findByChatId(chatId);
+    List<Message> getChatMessages(Principal user, @PathVariable Long chatId) {
+        throwIfChatNotExists(chatId);
+        return messageRepository.findMessages(chatId);
     }
 
     /**
-     * Возвращает сообщения чата (дефолтный размер страницы).
-     * @param messageId id сообщения
-     * @return очередь сообщений чата
-     */
-    @GetMapping("/messages/{messageId}")
-    public @ResponseBody List<Message> getChatMessagesCount(@PathVariable Long messageId) {
-        return messageRepository.findByMessageId(messageId);
-    }
-
-    /**
-     * Возвращает сообщения чата (заданный размер страницы).
-     * @param messageId id сообщения
-     * @return очередь сообщений чата
-     */
-    @GetMapping("/messages/{messageId}/{pageSize}")
-    public @ResponseBody List<Message> getChatMessagesCount(@PathVariable Long messageId, @PathVariable Long pageSize) {
-        return messageRepository.findByMessageId(messageId, pageSize);
-    }
-
-    /**
-     * Возвращает сообщения чата (заданный размер страницы, номер страницы).
-     * @param messageId id сообщения
-     * @return очередь сообщений чата
-     */
-    @GetMapping("/messages/{messageId}/{pageSize}/{pageNumber}")
-    public @ResponseBody List<Message> getChatMessagesCount(@PathVariable Long messageId, @PathVariable Long pageSize,
-                                                            @PathVariable Long pageNumber) {
-        return messageRepository.findByMessageId(messageId, pageSize, pageNumber);
-    }
-
-    /**
-     * Последнее сообщение из чата.
+     * Возвращает последнее сообщение чата.
      * @param chatId id чата
      * @return последнее сообщение
      */
     @GetMapping("/{chatId}/latest")
-    public @ResponseBody Message getNewMessage(@PathVariable Long chatId) {
-        if (chatRepository.findById(chatId).isEmpty()) {
-            throw new ChatNotFoundException(chatId);
-        }
+    public @ResponseBody Message getNewMessage(Principal user, @PathVariable Long chatId) {
+        throwIfChatNotExists(chatId);
         return messageRepository.latestInChat(chatId);
+    }
+
+    @GetMapping("/{chatId}/messages")
+    public @ResponseBody List<Message> getChatMessagesByPage(Principal user, @PathVariable Long chatId,
+                                                             @RequestParam(name = "page_size", required = false) Integer pageSize,
+                                                             @RequestParam(name = "page_num", required = false) Integer pageNum) {
+        throwIfChatNotExists(chatId);
+        return messageRepository.findMessagesByPage(chatId, pageSize == null ? 10 : pageSize, pageNum == null ? 1 : pageNum);
     }
 
     /**
@@ -128,11 +112,9 @@ public class PersonalChatController {
      * @return подтверждение удаления
      */
     @DeleteMapping("/{chatId}")
-    public @ResponseBody Long deleteChat(@PathVariable Long chatId) {
-        if (chatRepository.findById(chatId).isEmpty()) {
-            throw new ChatNotFoundException(chatId);
-        }
-        messageRepository.deleteAll(messageRepository.findByChatId(chatId));
+    public @ResponseBody Long deleteChat(Principal user, @PathVariable Long chatId) {
+        throwIfChatNotExists(chatId);
+        messageRepository.deleteAll(messageRepository.findMessages(chatId));
         chatRepository.deleteById(chatId);
         return chatId;
     }
@@ -145,13 +127,22 @@ public class PersonalChatController {
     @PostMapping("/{chatId}")
     public @ResponseBody
     Long sendMessage(Principal user, @PathVariable Long chatId, @RequestBody MessageBody messageBody) {
-        if (chatRepository.findById(chatId).isEmpty()) {
-            throw new ChatNotFoundException(chatId);
-        }
+        throwIfChatNotExists(chatId);
         Message message = new Message(chatId, userRepository.findByUsername(user.getName()).getId(),
                 messageBody.getText());
         messageRepository.save(message);
 
         return message.getMessageId();
+    }
+
+    /**
+     * Проверяет, существует ли чат с заданным id.
+     * @param id id чата
+     * @throws ChatNotFoundException чат не найден
+     */
+    private void throwIfChatNotExists(Long id) throws ChatNotFoundException {
+        if (chatRepository.findById(id).isEmpty()) {
+            throw new ChatNotFoundException(id);
+        }
     }
 }

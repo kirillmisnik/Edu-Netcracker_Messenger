@@ -17,36 +17,43 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Controller for handling requests related to users.
+ */
 @Controller
 @RequestMapping("user")
 public class UserController {
 
-    private final UserRepository repository;
+    /**
+     * User JPA repository.
+     */
+    private final UserRepository userRepository;
 
+    /**
+     * Personal chat JPA repository.
+     */
     private final PersonalChatRepository chatRepository;
 
-    UserController(UserRepository repository, PersonalChatRepository chatRepository) {
-        this.repository = repository;
+    UserController(UserRepository userRepository, PersonalChatRepository chatRepository) {
+        this.userRepository = userRepository;
         this.chatRepository = chatRepository;
     }
 
     /**
-     * Возвращает список всех зарегистрированных пользователей.
-     * @return зарегистрированные пользователи
-     * @throws UserNotFoundException пользователей не найдено
+     * Returns a list of all registered users.
+     * @param loggedInUser logged in user
+     * @return list of users
      */
     @GetMapping("/all")
-    public @ResponseBody List<UserView> allUsers(Principal principal) throws UserNotFoundException {
-        if (repository.findAll().isEmpty()) {
-            throw new UserNotFoundException();
-        }
+    public @ResponseBody List<UserView> allUsers(Principal loggedInUser) {
+        throwIfUserNotExists();
         List<UserView> users = new ArrayList<>();
-        if (repository.findByUsername(principal.getName()).getAccountType().equals(AccountType.ADMIN)) {
-            for (User user : repository.findAll()) {
+        if (userRepository.findByUsername(loggedInUser.getName()).getAccountType().equals(AccountType.ADMIN)) {
+            for (User user : userRepository.findAll()) {
                 users.add(new UserPrivateView(user));
             }
         } else {
-            for (User user : repository.findAll()) {
+            for (User user : userRepository.findAll()) {
                 users.add(new UserPublicView(user));
             }
         }
@@ -54,56 +61,100 @@ public class UserController {
     }
 
     /**
-     * Возвращает информацию о пользователе по id.
-     * @param id id пользователя
-     * @return информацию о пользователе
-     * @throws UserNotFoundException пользователь с даннм id не найден
+     * Returns user information.
+     * @param loggedInUser logged in user
+     * @param id user id
+     * @return user information
      */
     @GetMapping("/{id}")
     public @ResponseBody
-    UserView getUserInfo(Principal principal, @PathVariable Long id) throws UserNotFoundException {
-        if (repository.findById(id).isEmpty()) {
-            throw new UserNotFoundException(id);
+    UserView getUserInfo(Principal loggedInUser, @PathVariable Long id) {
+        throwIfUserNotExists(id);
+        if (hasPermission(loggedInUser, id))  {
+            return new UserPrivateView(userRepository.findById(id).get());
         }
-        if (repository.findByUsername(principal.getName()).getId().equals(id) ||
-                repository.findByUsername(principal.getName()).getAccountType().equals(AccountType.ADMIN))  {
-            return new UserPrivateView(repository.findById(id).get());
-        }
-        return new UserPublicView(repository.findById(id).get());
+        return new UserPublicView(userRepository.findById(id).get());
     }
 
     /**
-     * Удаляет пользователя по id.
-     * @param id id пользователя
-     * @return id удаленного пользователя в случае успеха
-     * @throws UserNotFoundException пользователь с даннм id не найден
-     * @throws AccessDeniedException нет прав на удаление пользователя
+     * Deletes user.
+     * @param id user id
+     * @return user id
      */
     @DeleteMapping("/{id}")
-    public @ResponseBody Long deleteUser(Principal principal, @PathVariable Long id)
-            throws UserNotFoundException, AccessDeniedException {
-        if (repository.findById(id).isEmpty()) {
-            throw new UserNotFoundException(id);
+    public @ResponseBody Long deleteUser(Principal loggedInUser, @PathVariable Long id) {
+        throwIfUserNotExists(id);
+        if (!hasPermission(loggedInUser, id))  {
+            throw new AccessDeniedException(
+                    String.format("You don't have permission to delete user with id: %d", id));
         }
-        if (!repository.findByUsername(principal.getName()).getId().equals(id) &&
-                !repository.findByUsername(principal.getName()).getAccountType().equals(AccountType.ADMIN))  {
-            throw new AccessDeniedException(String.format("You don't have permission to delete user with id: %d", id));
-        }
-        repository.deleteById(id);
+        userRepository.deleteById(id);
         return id;
     }
 
     /**
-     * Возвращает список id всех чатов, доступных пользователю.
-     * @param id id пользователя
-     * @return список id чатов
+     * Blocks user.
+     * @param loggedInUser logged in user
+     * @param id user id
+     * @return user id
+     */
+    @PostMapping("/{id}/block")
+    public @ResponseBody Long blockUser(Principal loggedInUser, @PathVariable Long id) {
+        throwIfUserNotExists(id);
+        User userById = userRepository.findByUsername(loggedInUser.getName());
+        if (!userById.getAccountType().equals(AccountType.ADMIN))  {
+            throw new AccessDeniedException("You don't have permission to block users.");
+        }
+        userById.setAccountType(AccountType.BLOCKED);
+        return id;
+    }
+
+    /**
+     * Returns a list of all chats available to user.
+     * @param loggedInUser logged in user
+     * @param id user id
+     * @return list of chats
      */
     @GetMapping("/{id}/chats")
     public @ResponseBody
-    List<PersonalChat> getUserChats(@PathVariable Long id) {
-        if (repository.findById(id).isEmpty()) {
-            throw new UserNotFoundException(id);
+    List<PersonalChat> getUserChats(Principal loggedInUser, @PathVariable Long id) {
+        throwIfUserNotExists(id);
+        if (!hasPermission(loggedInUser, id))  {
+            throw new AccessDeniedException(
+                    String.format("You don't have permission to access chat(s) of the user with id: %d", id));
         }
         return chatRepository.findByUserId(id);
+    }
+
+    /**
+     * Checks if the user with the given id exists.
+     * @param id user id
+     * @throws UserNotFoundException user is not found
+     */
+    private void throwIfUserNotExists(Long id) throws UserNotFoundException {
+        if (userRepository.findById(id).isEmpty()) {
+            throw new UserNotFoundException(id);
+        }
+    }
+
+    /**
+     * Checks if at least one user exists.
+     * @throws UserNotFoundException no user found
+     */
+    private void throwIfUserNotExists() throws UserNotFoundException {
+        if (userRepository.findAll().isEmpty()) {
+            throw new UserNotFoundException();
+        }
+    }
+
+    /**
+     * Checks if the logged in user has access to information available by id.
+     * @param loggedInUser logged in user
+     * @param id user id
+     * @return true - has access, false - does not have
+     */
+    private boolean hasPermission(Principal loggedInUser, Long id) {
+        return userRepository.findByUsername(loggedInUser.getName()).getId().equals(id) ||
+                userRepository.findByUsername(loggedInUser.getName()).getAccountType().equals(AccountType.ADMIN);
     }
 }
