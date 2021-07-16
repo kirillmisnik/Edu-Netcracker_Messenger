@@ -1,4 +1,4 @@
-package edu.netcracker.messenger.chat;
+package edu.netcracker.messenger.chat.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
