@@ -8,6 +8,7 @@ import edu.netcracker.messenger.entities.message.Message;
 import edu.netcracker.messenger.entities.message.MessageRepository;
 import edu.netcracker.messenger.entities.message.view.MessageBody;
 import edu.netcracker.messenger.entities.user.UserRepository;
+import edu.netcracker.messenger.entities.user.exceptions.UserNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ import java.security.Principal;
 import java.util.*;
 
 /**
- * Controller for handling requests related to personal messages.
+ * Controller for handling requests related to chats.
  */
 @Controller
 @RequestMapping("chat")
@@ -38,9 +39,18 @@ public class ChatController {
 
     @PostMapping("/create")
     public @ResponseBody
-    Chat createChat(Principal user, @RequestBody ChatBodyView chatBody) {
+    Chat createChat(Principal loggedInUser, @RequestBody ChatBodyView chatBody) {
+        List<Long> errors = new ArrayList<>();
+        for (Long userId : chatBody.getChatMembersId()) {
+            if (userRepository.findById(userId).isEmpty()) {
+                errors.add(userId);
+            }
+        }
+        if (!errors.isEmpty()) {
+            throw new UserNotFoundException(errors);
+        }
         List<Long> chatMembers = new ArrayList<>(
-                Collections.singletonList(userRepository.findByUsername(user.getName()).getId()));
+                Collections.singletonList(userRepository.findByUsername(loggedInUser.getName()).getId()));
         chatMembers.addAll(chatBody.getChatMembersId());
         Chat chat = new Chat(chatMembers);
         if (chat.getChatType().equals(ChatType.GROUP)) {
@@ -67,10 +77,6 @@ public class ChatController {
     Chat getChatInfo(Principal loggedInUser, @PathVariable Long chatId) {
         throwIfChatHasErrors(loggedInUser, chatId);
         return chatRepository.findById(chatId).get();
-    }
-
-    private Long getId(Principal loggedInUser) {
-        return userRepository.findByUsername(loggedInUser.getName()).getId();
     }
 
     /**
@@ -130,6 +136,10 @@ public class ChatController {
                 messageBody.getText());
         messageRepository.save(message);
         return message.getMessageId();
+    }
+
+    private Long getId(Principal loggedInUser) {
+        return userRepository.findByUsername(loggedInUser.getName()).getId();
     }
 
     private void checkIfPersonalChatExists(Chat chat) throws PersonalChatAlreadyExists {

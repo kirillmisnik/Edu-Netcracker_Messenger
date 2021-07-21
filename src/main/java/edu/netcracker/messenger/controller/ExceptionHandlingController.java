@@ -35,7 +35,7 @@ public class ExceptionHandlingController {
     @ExceptionHandler(UserNotFoundException.class)
     public @ResponseBody
     ExceptionView userNotFoundExceptionHandler(UserNotFoundException e) {
-        return new ExceptionView(Collections.singletonList(e.getMessage()), HttpStatus.NOT_FOUND);
+        return new ExceptionView(e.getErrorMessages(), HttpStatus.NOT_FOUND);
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
