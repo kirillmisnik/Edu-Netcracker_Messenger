@@ -1,10 +1,10 @@
 package edu.netcracker.messenger.controller;
 
-import edu.netcracker.messenger.entities.chat.exceptions.PersonalChatAlreadyExists;
+import edu.netcracker.messenger.model.chat.exceptions.PersonalChatAlreadyExists;
 import edu.netcracker.messenger.view.ExceptionView;
-import edu.netcracker.messenger.entities.chat.exceptions.ChatNotFoundException;
-import edu.netcracker.messenger.entities.user.exceptions.UserAlreadyExistsException;
-import edu.netcracker.messenger.entities.user.exceptions.UserNotFoundException;
+import edu.netcracker.messenger.model.chat.exceptions.ChatNotFoundException;
+import edu.netcracker.messenger.model.user.exceptions.UserAlreadyExistsException;
+import edu.netcracker.messenger.model.user.exceptions.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
