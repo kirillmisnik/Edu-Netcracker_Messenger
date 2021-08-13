@@ -118,9 +118,11 @@ export default function App() {
 
     const [message, setMessage] = useState('')
 
+    const textInput = React.useRef();
+
     const sendMessage = (e) => {
         e.preventDefault();
-        getConversations();
+        textInput.current.value = ""
         axios({
             method: 'post',
             url: 'http://localhost:8080/api/1.0/chat/' + chat,
@@ -209,6 +211,7 @@ export default function App() {
                             <input
                                 type="text"
                                 className="compose-input"
+                                ref={textInput}
                                 placeholder="Type a message"
                                 onChange={ event => setMessage(event.target.value) }
                             />
