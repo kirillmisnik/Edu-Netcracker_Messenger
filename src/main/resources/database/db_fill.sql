@@ -1,3 +1,8 @@
+DELETE FROM users;
+DELETE FROM chats;
+DELETE FROM chat_members;
+DELETE FROM messages;
+
 INSERT INTO users VALUES
 (nextval('users_id_seq'), 'kirillmisnik', '$2a$10$/1ibOuesi8D3l9MBabqHYuUFeCJcUqz0/owvGeKqL0pez0etUAyPm', 'Kirill', 'Misnik', 'I am a Java junior developer.', '+7 (985) 123-45-67', 'kirill.misnik.g@gmail.com', null, 'ADMIN', '2021-06-28 10:23:54', '2021-07-09 18:54:11', '2021-07-11 10:23:42'),
 (nextval('users_id_seq'), 'johnsmith', '$2a$10$/1ibOuesi8D3l9MBabqHYuUFeCJcUqz0/owvGeKqL0pez0etUAyPm', 'Xavier', 'Gardner', 'I am a sample user.', '+7 (183) 707-20-61', 'x.xavier@gmail.com', null, 'USER', '2021-06-25 12:41:35', '2021-07-12 21:25:32', '2021-07-13 08:37:47'),
